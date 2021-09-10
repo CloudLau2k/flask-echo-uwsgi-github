@@ -14,9 +14,12 @@
 
 import os
 import sys
+from datetime import datetime
 from argparse import ArgumentParser
 
 from flask import Flask, request, abort
+from flask_sqlalchemy import SQLAlchemy
+
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -28,6 +31,19 @@ from linebot.models import (
 )
 
 app = Flask(__name__)
+
+# db init
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+sqlalchemy_uri = os.getenv('SQLALCHEMY_DATABASE_URI', None)
+if sqlalchemy_uri is None:
+    print('Specify SQLALCHEMY_DATABASE_URI as environment variable.')
+    sys.exit(1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = sqlalchemy_uri
+
+db = SQLAlchemy()
+db.init_app(app)
 
 # get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
@@ -60,14 +76,39 @@ def callback():
 
     return 'OK'
 
+@app.route("/cdb", methods=['get'])
+def cdb():
+    db.create_all()
+    return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
 def message_text(event):
+    save_text(event.message.text)
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=event.message.text)
     )
 
+# 模型( model )定義
+class MsgText(db.Model):
+    __tablename__ = 'msg_text'
+    pid = db.Column(db.Integer, primary_key=True)
+
+    message = db.Column(
+        db.String(255), nullable=False)
+
+    insert_time = db.Column(db.DateTime, default=datetime.now)
+    update_time = db.Column(
+        db.DateTime, onupdate=datetime.now, default=datetime.now)
+
+    def __init__(self, message):
+        self.message = message
+
+def save_text(text):
+    msg = MsgText(text)
+    db.session.add(msg)
+    db.session.commit()
+    return
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
