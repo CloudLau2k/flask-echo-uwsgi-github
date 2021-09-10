@@ -76,7 +76,7 @@ def callback():
 
     return 'OK'
 
-@app.route("/cdb", methods=['get'])
+@app.route("/cdb", methods=['GET'])
 def cdb():
     db.create_all()
     return 'OK'
