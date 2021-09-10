@@ -1,4 +1,6 @@
-# import db
+from datetime import datetime
+
+from linebotapp import db
 
 # 模型( model )定義
 class MsgText(db.Model):
@@ -14,3 +16,9 @@ class MsgText(db.Model):
 
     def __init__(self, message):
         self.message = message
+
+    @classmethod
+    def save_message(cls, text):
+        _new = cls(message=text)
+        db.session.add(_new)
+        db.session.commit()
