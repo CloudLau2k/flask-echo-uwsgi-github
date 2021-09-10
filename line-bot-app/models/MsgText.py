@@ -1,4 +1,4 @@
-from .. import db
+# import db
 
 # 模型( model )定義
 class MsgText(db.Model):
