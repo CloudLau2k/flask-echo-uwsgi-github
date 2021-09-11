@@ -67,14 +67,20 @@ def create_app():
     def callback():
         # get X-Line-Signature header value
         signature = request.headers['X-Line-Signature']
-        print(f'signature: {signature}')
+        print('1')
+        
         # get request body as text
         body = request.get_data(as_text=True)
+        print('2')
         app.logger.info("Request body: " + body)
+        print('3')
 
         # handle webhook body
         try:
+            print(f'body : {body}')
+            print(f'signature : {signature}')
             handler.handle(body, signature)
+            print('4')
         except InvalidSignatureError:
             abort(400)
 
