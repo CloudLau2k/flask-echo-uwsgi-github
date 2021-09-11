@@ -1,1 +1,1 @@
-web: uwsgi uwsgi.ini --log-level debug
+web: uwsgi uwsgi.ini

@@ -67,7 +67,7 @@ def create_app():
     def callback():
         # get X-Line-Signature header value
         signature = request.headers['X-Line-Signature']
-
+        print(f'signature: {signature}')
         # get request body as text
         body = request.get_data(as_text=True)
         app.logger.info("Request body: " + body)
