@@ -1,5 +1,7 @@
 line-bot-sdk
 flask
 flask-sqlalchemy
+flask-migrate
 psycopg2-binary
 uwsgi
+Flask-Testing
