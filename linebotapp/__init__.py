@@ -27,7 +27,7 @@ from linebot import (
 )
 
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, FollowEvent, TextMessage, TextSendMessage, 
 )
 
 # get channel_secret and channel_access_token from your environment variable
@@ -67,20 +67,20 @@ def create_app():
     def callback():
         # get X-Line-Signature header value
         signature = request.headers['X-Line-Signature']
-        print('1')
+        # print('1')
         
         # get request body as text
         body = request.get_data(as_text=True)
-        print('2')
+        # print('2')
         app.logger.info("Request body: " + body)
-        print('3')
+        # print('3')
 
         # handle webhook body
         try:
             print(f'body : {body}')
             print(f'signature : {signature}')
             handler.handle(body, signature)
-            print('4')
+            # print('4')
         except InvalidSignatureError:
             abort(400)
 
@@ -113,13 +113,50 @@ def create_app():
 
 # app
 def register_linebot():
-    @handler.add(MessageEvent, message=TextMessage)
+
+    @handler.add(FollowEvent, message=TextMessage)
     def message_text(event):
-        save_text(event.message.text)
+
+        user_id = event.source.userId
+        user_cmd = "FollowEvent"
+        save_text(user_cmd)
+
+        print(f"user_id: {user_id}, do: {user_cmd}")
+
+        reply_text = f"歡迎 {user_id} 加入！"
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=event.message.text)
+            TextSendMessage(text=reply_text)
         )
+
+    @handler.add(MessageEvent, message=TextMessage)
+    def message_text(event):
+
+        user_id = event.source.userId
+        user_cmd = event.message.text
+        save_text(user_cmd)
+
+        print(f"user_id: {user_id}, do: {user_cmd}")
+
+        if user_cmd == 'hello':
+            print("Hi Hello World")
+        elif user_cmd == '報到':
+            # 進入報到狀態（會過期）
+            ## save to Redis and 回傳 請輸入小朋友學號
+            
+            # 進入學號狀態
+
+            # 回傳 請輸入小朋友姓名
+            # 回傳 請輸入email
+            ## 發送OTP
+            # 回傳 請輸入OTP
+            # 已登錄成功、可查詢歷史交易資料
+            pass
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=event.message.text)
+            )
 
 def save_text(text):
     from .models.MsgText import MsgText
